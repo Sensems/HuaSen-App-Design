@@ -1,0 +1,692 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>NoteFlow — 记录，以编辑的方式</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;600;700;800;900&family=Inter:wght@300;400;500&family=Playfair+Display:ital,wght@1,500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --paper: #efe7d2;
+      --paper-warm: #ece4cf;
+      --paper-dark: #ddd2b6;
+      --bone: #f7f1de;
+      --ink: #15140f;
+      --ink-soft: #2a2620;
+      --ink-mute: #5a5448;
+      --ink-faint: #8b8676;
+      --coral: #ed6f5c;
+      --coral-soft: #f08e7c;
+      --mustard: #e9b94a;
+      --olive: #6e7448;
+      --font-display: 'Inter Tight', 'Helvetica Neue', Arial, sans-serif;
+      --font-serif: 'Playfair Display', Georgia, serif;
+      --font-body: 'Inter', -apple-system, system-ui, sans-serif;
+      --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--paper);
+      color: var(--ink);
+      font-family: var(--font-body);
+      font-size: 16px;
+      line-height: 1.55;
+      text-rendering: optimizeLegibility;
+      -webkit-font-smoothing: antialiased;
+      position: relative;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      pointer-events: none;
+      opacity: 0.06;
+      mix-blend-mode: multiply;
+      background:
+        radial-gradient(ellipse at 20% 30%, rgba(106, 92, 56, 0.06) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 70%, rgba(106, 92, 56, 0.06) 0%, transparent 60%);
+    }
+
+    img, svg { display: block; max-width: 100%; }
+    a { color: inherit; text-decoration: none; }
+    button { font: inherit; cursor: pointer; border: none; background: none; }
+    p { text-wrap: pretty; }
+    h1, h2, h3 { text-wrap: balance; }
+
+    .meta-strip {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 64px;
+      border-bottom: 1px solid rgba(21, 20, 15, 0.12);
+      font-family: var(--font-display);
+      font-size: 10.5px;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      color: var(--ink-faint);
+    }
+    .meta-strip .pulse {
+      width: 6px; height: 6px;
+      background: var(--coral);
+      border-radius: 50%;
+      display: inline-block;
+      animation: pulse 2.4s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.35; }
+    }
+
+    .side-rail {
+      position: fixed;
+      top: 0; bottom: 0;
+      width: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 5;
+    }
+    .side-rail-left { left: 0; }
+    .side-rail-right { right: 0; }
+    .side-rail span {
+      font-family: var(--font-display);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.42em;
+      text-transform: uppercase;
+      color: var(--ink-faint);
+      white-space: nowrap;
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+      transform: rotate(180deg);
+    }
+    @media (max-width: 1279px) {
+      .side-rail { display: none; }
+    }
+
+    .topnav {
+      position: sticky; top: 0; z-index: 10;
+      background: color-mix(in oklch, var(--paper) 92%, transparent);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(21, 20, 15, 0.12);
+    }
+    .topnav-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 64px;
+      max-width: 1360px;
+      margin-inline: auto;
+    }
+    .logo {
+      font-family: var(--font-display);
+      font-size: 19px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+    .logo em {
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-weight: 500;
+      color: var(--coral);
+    }
+    .topnav nav { display: flex; gap: 32px; }
+    .topnav nav a {
+      font-family: var(--font-display);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--ink-mute);
+      transition: color 0.18s ease;
+    }
+    .topnav nav a:hover { color: var(--ink); }
+    .nav-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 18px;
+      background: var(--coral);
+      color: #fff;
+      border-radius: 999px;
+      font-family: var(--font-display);
+      font-size: 13px;
+      font-weight: 600;
+      transition: transform 0.18s ease, background 0.18s ease;
+      box-shadow: 0 14px 26px -16px rgba(237, 111, 92, 0.5);
+    }
+    .nav-cta:hover { transform: translateY(-1px); background: var(--coral-soft); }
+
+    .container {
+      max-width: 1360px;
+      margin-inline: auto;
+      padding-inline: 64px;
+    }
+    @media (max-width: 1280px) { .container { padding-inline: 44px; } .topnav-inner { padding-inline: 44px; } .meta-strip { padding-inline: 44px; } }
+    @media (max-width: 1080px) { .container { padding-inline: 32px; } .topnav-inner { padding-inline: 32px; } .meta-strip { padding-inline: 32px; } }
+    @media (max-width: 880px) { .container { padding-inline: 24px; } .topnav-inner { padding-inline: 24px; } .meta-strip { padding-inline: 24px; } }
+
+    .sec-rule {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid rgba(21, 20, 15, 0.12);
+      margin-bottom: 48px;
+    }
+    .sec-rule .roman {
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-size: 14px;
+      color: var(--coral);
+    }
+    .sec-rule .sec-meta {
+      flex: 1;
+      text-align: center;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.04em;
+      color: var(--ink-faint);
+      text-transform: uppercase;
+    }
+    .sec-rule .page-num {
+      font-family: var(--font-display);
+      font-size: 11px;
+      color: var(--ink-faint);
+    }
+
+    .section { padding-block: 130px; }
+    @media (max-width: 880px) { .section { padding-block: 80px; } }
+
+    .eyebrow {
+      font-family: var(--font-display);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--coral);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .eyebrow::before {
+      content: '';
+      width: 18px;
+      height: 1px;
+      background: var(--coral);
+    }
+
+    .h1 {
+      font-family: var(--font-display);
+      font-size: clamp(44px, 6vw, 78px);
+      font-weight: 800;
+      line-height: 1.04;
+      letter-spacing: -0.03em;
+    }
+    .h1 em {
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-weight: 500;
+    }
+    .h2 {
+      font-family: var(--font-display);
+      font-size: clamp(32px, 4vw, 54px);
+      font-weight: 800;
+      line-height: 1.08;
+      letter-spacing: -0.025em;
+    }
+    .h2 em {
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-weight: 500;
+    }
+    .dot { color: var(--coral); }
+    .lead {
+      font-family: var(--font-body);
+      font-size: 17px;
+      line-height: 1.6;
+      color: var(--ink-mute);
+      max-width: 52ch;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 22px;
+      background: var(--coral);
+      color: #fff;
+      border-radius: 999px;
+      font-family: var(--font-display);
+      font-size: 14px;
+      font-weight: 600;
+      transition: transform 0.18s ease, background 0.18s ease;
+      box-shadow: 0 14px 26px -16px rgba(237, 111, 92, 0.5);
+    }
+    .btn-primary:hover { transform: translateY(-1px); background: var(--coral-soft); }
+    .btn-primary svg { width: 14px; height: 14px; }
+
+    .btn-ghost {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 22px;
+      background: transparent;
+      color: var(--ink);
+      border: 1px solid rgba(21, 20, 15, 0.2);
+      border-radius: 999px;
+      font-family: var(--font-display);
+      font-size: 14px;
+      font-weight: 600;
+      transition: transform 0.18s ease, border-color 0.18s ease;
+    }
+    .btn-ghost:hover { border-color: var(--ink); }
+
+    .hero-split {
+      display: grid;
+      grid-template-columns: 0.78fr 1.22fr;
+      gap: 64px;
+      align-items: center;
+    }
+    @media (max-width: 880px) { .hero-split { grid-template-columns: 1fr; gap: 40px; } }
+    .hero-text .h1 { margin-bottom: 20px; }
+    .hero-text .lead { margin-bottom: 32px; }
+    .hero-cta { display: flex; gap: 12px; flex-wrap: wrap; }
+
+    .hero-visual {
+      position: relative;
+      aspect-ratio: 16 / 10;
+      background: var(--bone);
+      border: 1px solid rgba(21, 20, 15, 0.12);
+      border-radius: 4px;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+    }
+    .hero-visual::before,
+    .hero-visual::after {
+      content: '';
+      position: absolute;
+      width: 22px; height: 22px;
+      border: 1px solid var(--ink-faint);
+    }
+    .hero-visual::before { top: 12px; left: 12px; border-right: none; border-bottom: none; }
+    .hero-visual::after { bottom: 12px; right: 12px; border-left: none; border-top: none; }
+    .hero-visual .plate {
+      position: absolute;
+      bottom: 16px; left: 16px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.04em;
+      color: var(--ink-faint);
+    }
+    .hero-visual .coord {
+      position: absolute;
+      top: 16px; right: 16px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.04em;
+      color: var(--ink-faint);
+    }
+    .hero-visual .placeholder-text {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--ink-faint);
+      letter-spacing: 0.04em;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 40px;
+    }
+    @media (max-width: 880px) { .features-grid { grid-template-columns: 1fr; gap: 32px; } }
+    .feature-card {
+      background: var(--bone);
+      border-radius: 18px;
+      padding: 28px 26px;
+      border: 1px solid rgba(21, 20, 15, 0.06);
+      box-shadow: 0 30px 60px -30px rgba(21, 20, 15, 0.15), 0 -30px 60px -15px rgba(21, 20, 15, 0.05);
+      transition: transform 0.18s ease;
+      position: relative;
+    }
+    .feature-card:hover { transform: translateY(-3px); }
+    .feature-card .card-num {
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-size: 14px;
+      color: var(--ink-faint);
+      margin-bottom: 4px;
+    }
+    .feature-card .card-tag {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--olive);
+      display: inline-flex;
+      padding: 3px 8px;
+      border: 1px solid rgba(110, 116, 72, 0.2);
+      border-radius: 999px;
+      margin-left: 8px;
+    }
+    .feature-card h3 {
+      font-family: var(--font-display);
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      margin: 16px 0 10px;
+    }
+    .feature-card p {
+      font-family: var(--font-body);
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--ink-mute);
+    }
+    .feature-card .card-arrow {
+      position: absolute;
+      bottom: 20px; right: 20px;
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      border: 1px solid rgba(21, 20, 15, 0.12);
+      display: grid;
+      place-items: center;
+      transition: background 0.18s ease, border-color 0.18s ease;
+    }
+    .feature-card:hover .card-arrow {
+      background: var(--coral);
+      border-color: var(--coral);
+    }
+    .feature-card:hover .card-arrow svg { stroke: #fff; }
+    .card-arrow svg { width: 14px; height: 14px; stroke: var(--ink-mute); stroke-width: 1.5; fill: none; }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 40px;
+    }
+    @media (max-width: 880px) { .stats-grid { grid-template-columns: 1fr; gap: 32px; } }
+    .stat-item { text-align: left; }
+    .stat-num {
+      font-family: var(--font-display);
+      font-size: clamp(56px, 8vw, 90px);
+      font-weight: 900;
+      line-height: 0.95;
+      letter-spacing: -0.04em;
+      color: var(--ink);
+    }
+    .stat-unit {
+      font-size: 0.45em;
+      font-weight: 600;
+      opacity: 0.6;
+      margin-left: 2px;
+    }
+    .stat-label {
+      font-family: var(--font-body);
+      font-size: 14px;
+      color: var(--ink-mute);
+      margin-top: 10px;
+      max-width: 28ch;
+      line-height: 1.55;
+    }
+
+    .quote-section {
+      max-width: 800px;
+      margin-inline: auto;
+      text-align: left;
+    }
+    .quote-mark {
+      font-family: var(--font-serif);
+      font-size: 140px;
+      line-height: 0.7;
+      color: var(--coral);
+      opacity: 0.18;
+      margin-bottom: -28px;
+    }
+    .quote-text {
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-size: clamp(24px, 2.6vw, 32px);
+      line-height: 1.32;
+      letter-spacing: -0.01em;
+      max-width: 28ch;
+    }
+    .quote-author {
+      font-family: var(--font-body);
+      font-size: 14px;
+      color: var(--ink-mute);
+      margin-top: 24px;
+    }
+
+    .cta-strip { text-align: center; }
+    .cta-strip .h2 { margin-bottom: 16px; }
+    .cta-strip .lead { margin: 0 auto 32px; text-align: center; }
+
+    .pagefoot {
+      padding-block: 80px 60px;
+      border-top: 1px solid rgba(21, 20, 15, 0.12);
+    }
+    .footer-brand {
+      font-family: var(--font-display);
+      font-size: clamp(70px, 13vw, 200px);
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      line-height: 0.9;
+      color: var(--ink);
+    }
+    .footer-brand em {
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-weight: 500;
+    }
+    .footer-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 32px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.04em;
+      color: var(--ink-faint);
+      text-transform: uppercase;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .footer-pulse {
+      width: 6px; height: 6px;
+      background: var(--coral);
+      border-radius: 50%;
+      display: inline-block;
+      animation: pulse 2.4s ease-in-out infinite;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+
+    @media (max-width: 880px) {
+      .topnav nav { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="side-rail side-rail-left"><span>NoteFlow · MMXXVI</span></div>
+  <div class="side-rail side-rail-right"><span>混合笔记 · 微信同步</span></div>
+
+  <div class="meta-strip" data-od-id="meta-strip">
+    <span>Vol. 01 / Issue Nº 26</span>
+    <span>Filed under 笔记工具 · 混合媒体</span>
+    <span><span class="pulse"></span> v1.0 · zh-CN</span>
+  </div>
+
+  <header class="topnav" data-od-id="topnav">
+    <div class="topnav-inner">
+      <span class="logo">Note<em>Flow</em></span>
+      <nav>
+        <a href="#features">功能</a>
+        <a href="#specs">规格</a>
+        <a href="#about">关于</a>
+      </nav>
+      <a href="#" class="nav-cta">
+        开始使用
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+      </a>
+    </div>
+  </header>
+
+  <main id="content">
+    <section class="section hero" data-od-id="hero">
+      <div class="container">
+        <div class="sec-rule">
+          <span class="roman">I.</span>
+          <span class="sec-meta">NoteFlow · 混合笔记应用</span>
+          <span class="page-num">001 / 006</span>
+        </div>
+        <div class="hero-split">
+          <div class="hero-text">
+            <p class="eyebrow">NOTEFLOW · 混合笔记</p>
+            <h1 class="h1">记录，以<em>编辑</em>的方式<span class="dot">.</span></h1>
+            <p class="lead">文本、语音、图片、视频、文件，双区分离创作。微信公众号一键同步，跨设备剪贴板实时协同。</p>
+            <div class="hero-cta">
+              <button class="btn-primary">
+                开始使用
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+              </button>
+              <button class="btn-ghost">了解更多 →</button>
+            </div>
+          </div>
+          <div class="hero-visual" aria-label="产品截图占位">
+            <span class="placeholder-text">[ 产品截图 · 16:10 ]</span>
+            <span class="plate">Plate Nº 01</span>
+            <span class="coord">52.5200° N · 13.4050° E</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="features" data-od-id="features">
+      <div class="container">
+        <div class="sec-rule">
+          <span class="roman">II.</span>
+          <span class="sec-meta">核心能力 · Core Capabilities</span>
+          <span class="page-num">002 / 006</span>
+        </div>
+        <div style="margin-bottom: 48px; max-width: 40ch;">
+          <p class="eyebrow">核心能力</p>
+          <h2 class="h2">三个让你十分钟内<em>注意到</em>的变化<span class="dot">.</span></h2>
+        </div>
+        <div class="features-grid">
+          <div class="feature-card" data-od-id="feature-wechat">
+            <div>
+              <span class="card-num">01</span>
+              <span class="card-tag">微信生态</span>
+            </div>
+            <h3>微信生态接入</h3>
+            <p>关注公众号即绑定。发送文本、语音、图片、文件，自动同步至 APP 草稿箱。完善标题与标签后，一键转为正式笔记。</p>
+            <div class="card-arrow">
+              <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+            </div>
+          </div>
+          <div class="feature-card" data-od-id="feature-clipboard">
+            <div>
+              <span class="card-num">02</span>
+              <span class="card-tag">协同</span>
+            </div>
+            <h3>跨设备剪贴板</h3>
+            <p>全局开关控制同步。文本、图片、文件三类实时互通。智能阈值过滤——图片 ≤10MB，文件 ≤50MB。</p>
+            <div class="card-arrow">
+              <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+            </div>
+          </div>
+          <div class="feature-card" data-od-id="feature-mixed">
+            <div>
+              <span class="card-num">03</span>
+              <span class="card-tag">创作</span>
+            </div>
+            <h3>混合笔记创作</h3>
+            <p>文本编辑区与媒体附件区双区分离。支持富文本、录音、图片、视频、PDF。每条笔记结构清晰，素材独立管理。</p>
+            <div class="card-arrow">
+              <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="specs" data-od-id="stats">
+      <div class="container">
+        <div class="sec-rule">
+          <span class="roman">III.</span>
+          <span class="sec-meta">产品规格 · Specifications</span>
+          <span class="page-num">003 / 006</span>
+        </div>
+        <p class="eyebrow" style="margin-bottom: 40px;">产品规格</p>
+        <div class="stats-grid">
+          <div class="stat-item" data-od-id="stat-types">
+            <div class="stat-num">5<span class="stat-unit"> 种</span></div>
+            <p class="stat-label">内容类型：文本、语音、图片、视频、文件</p>
+          </div>
+          <div class="stat-item" data-od-id="stat-platforms">
+            <div class="stat-num">3<span class="stat-unit"> 端</span></div>
+            <p class="stat-label">覆盖 Android、桌面、微信生态</p>
+          </div>
+          <div class="stat-item" data-od-id="stat-sync">
+            <div class="stat-num" style="font-size: clamp(40px, 6vw, 72px);">实时</div>
+            <p class="stat-label">跨设备剪贴板同步，文本 / 图片 / 文件</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" data-od-id="quote">
+      <div class="container">
+        <div class="sec-rule">
+          <span class="roman">IV.</span>
+          <span class="sec-meta">用户反馈 · Testimonial</span>
+          <span class="page-num">004 / 006</span>
+        </div>
+        <div class="quote-section">
+          <div class="quote-mark">"</div>
+          <blockquote class="quote-text">从微信收藏文章到整理成正式笔记，NoteFlow 让整个过程不再断裂。</blockquote>
+          <p class="quote-author">— 早期用户反馈</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section cta-strip" data-od-id="cta">
+      <div class="container" style="max-width: 600px;">
+        <div class="sec-rule">
+          <span class="roman">V.</span>
+          <span class="sec-meta">立即体验 · Get Started</span>
+          <span class="page-num">005 / 006</span>
+        </div>
+        <h2 class="h2">开始用<em>编辑</em>的方式记录<span class="dot">.</span></h2>
+        <p class="lead">免费使用。跨设备同步无限制。</p>
+        <button class="btn-primary">
+          立即体验
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+        </button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="pagefoot" data-od-id="footer">
+    <div class="container">
+      <div class="sec-rule">
+        <span class="roman">VI.</span>
+        <span class="sec-meta">FIN. · NoteFlow</span>
+        <span class="page-num">006 / 006</span>
+      </div>
+      <div class="footer-brand">Note<em>Flow</em><span class="dot">.</span></div>
+      <div class="footer-meta">
+        <span>Vol. 01 / Issue Nº 26 · MMXXVI</span>
+        <span><span class="footer-pulse"></span> Filed under 笔记工具 · 混合媒体 · 微信同步</span>
+        <span>Edited by NoteFlow Studio</span>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>
