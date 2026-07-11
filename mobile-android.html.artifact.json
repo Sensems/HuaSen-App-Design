@@ -5,8 +5,15 @@
   "entry": "mobile-android.html",
   "renderer": "html",
   "status": "complete",
-  "exports": ["html", "pdf", "zip"],
+  "exports": [
+    "html",
+    "pdf",
+    "zip"
+  ],
   "createdAt": "2026-07-07T02:38:34.601Z",
   "updatedAt": "2026-07-07T02:38:34.601Z",
-  "metadata": { "inferred": true, "reconciled": true }
+  "metadata": {
+    "inferred": true,
+    "reconciled": true
+  }
 }
