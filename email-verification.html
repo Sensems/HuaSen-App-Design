@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>花森 — 邮箱验证码邮件模板</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;600;700;800&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #f5f4f0;
+    --surface: #ffffff;
+    --ink: #15140f;
+    --ink-soft: #2a2620;
+    --ink-mute: #5a5448;
+    --ink-faint: #8b8676;
+    --border: #e0ddd5;
+    --border-light: #edeae2;
+    --coral: #ed6f5c;
+    --coral-soft: #f08e7c;
+    --coral-bg: rgba(237, 111, 92, 0.06);
+    --mustard: #e9b94a;
+    --font-display: 'Inter Tight', 'Helvetica Neue', Arial, sans-serif;
+    --font-body: 'Inter', -apple-system, system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    padding: 32px 16px;
+  }
+
+  .page-header {
+    max-width: 640px;
+    width: 100%;
+    margin-bottom: 32px;
+  }
+
+  .page-header h1 {
+    font-family: var(--font-display);
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 8px;
+  }
+
+  .page-header p {
+    font-size: 14px;
+    color: var(--ink-mute);
+    line-height: 1.5;
+  }
+
+  .template-meta {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-top: 16px;
+  }
+
+  .template-meta .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.03em;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--ink-mute);
+  }
+
+  .template-meta .tag svg {
+    width: 12px;
+    height: 12px;
+    stroke: var(--ink-faint);
+  }
+
+  /* Email client chrome */
+  .email-client {
+    max-width: 640px;
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(21, 20, 15, 0.04);
+  }
+
+  .email-chrome {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border-light);
+    background: #fafaf8;
+  }
+
+  .email-chrome-dots {
+    display: flex;
+    gap: 6px;
+  }
+
+  .email-chrome-dots span {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--border);
+  }
+
+  .email-chrome-dots span:nth-child(1) { background: #f4a4a4; }
+  .email-chrome-dots span:nth-child(2) { background: #f0d28a; }
+  .email-chrome-dots span:nth-child(3) { background: #a8d8a0; }
+
+  .email-chrome-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-faint);
+    letter-spacing: 0.03em;
+    flex: 1;
+    text-align: center;
+  }
+
+  .email-subject-bar {
+    padding: 20px 28px 16px;
+    border-bottom: 1px solid var(--border-light);
+  }
+
+  .email-subject {
+    font-family: var(--font-display);
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin-bottom: 10px;
+  }
+
+  .email-from-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: var(--ink-mute);
+  }
+
+  .email-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--coral);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-display);
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    flex-shrink: 0;
+  }
+
+  .email-from-text {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+
+  .email-from-text .name {
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  .email-from-text .addr {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-faint);
+  }
+
+  .email-date {
+    margin-left: auto;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-faint);
+    white-space: nowrap;
+  }
+
+  /* Email body */
+  .email-body {
+    padding: 40px 28px 48px;
+  }
+
+  .email-logo {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+
+  .email-logo-text {
+    font-family: var(--font-display);
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  .email-logo-text em {
+    font-style: italic;
+    font-family: Georgia, serif;
+    color: var(--coral);
+  }
+
+  .email-greeting {
+    font-family: var(--font-body);
+    font-size: 15px;
+    font-weight: 400;
+    color: var(--ink-soft);
+    line-height: 1.6;
+    margin-bottom: 24px;
+  }
+
+  .email-intro {
+    font-size: 15px;
+    color: var(--ink-soft);
+    line-height: 1.6;
+    margin-bottom: 32px;
+  }
+
+  /* Verification code block */
+  .code-block {
+    background: #f9f8f5;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 28px 24px;
+    text-align: center;
+    margin-bottom: 32px;
+  }
+
+  .code-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 12px;
+  }
+
+  .code-value {
+    font-family: var(--font-mono);
+    font-size: 42px;
+    font-weight: 600;
+    letter-spacing: 0.28em;
+    color: var(--ink);
+    line-height: 1;
+  }
+
+  .code-expire {
+    font-size: 12px;
+    color: var(--ink-faint);
+    margin-top: 14px;
+    line-height: 1.5;
+  }
+
+  .code-expire strong {
+    color: var(--coral);
+    font-weight: 600;
+  }
+
+  /* Info box */
+  .info-box {
+    background: var(--coral-bg);
+    border-left: 3px solid var(--coral);
+    border-radius: 0 8px 8px 0;
+    padding: 14px 18px;
+    margin-bottom: 28px;
+  }
+
+  .info-box p {
+    font-size: 13px;
+    color: var(--ink-mute);
+    line-height: 1.6;
+  }
+
+  .info-box strong {
+    color: var(--ink-soft);
+    font-weight: 600;
+  }
+
+  /* Divider */
+  .email-divider {
+    border: none;
+    border-top: 1px solid var(--border-light);
+    margin: 28px 0;
+  }
+
+  /* Footer */
+  .email-footer {
+    text-align: center;
+    padding-top: 4px;
+  }
+
+  .email-footer p {
+    font-size: 12px;
+    color: var(--ink-faint);
+    line-height: 1.7;
+  }
+
+  .email-footer a {
+    color: var(--ink-mute);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .email-footer .brand-footer {
+    margin-top: 20px;
+    font-family: var(--font-display);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+
+  .email-footer .brand-footer em {
+    font-style: italic;
+    font-family: Georgia, serif;
+    color: var(--coral);
+    text-transform: none;
+    letter-spacing: 0;
+  }
+
+  /* ─── Variant 2: Minimal style ───────────────────────────── */
+  .variant-section {
+    max-width: 640px;
+    width: 100%;
+    margin-top: 48px;
+  }
+
+  .variant-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .variant-label .num {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--coral);
+    background: var(--coral-bg);
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .variant-label span {
+    font-family: var(--font-display);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink-mute);
+    letter-spacing: -0.01em;
+  }
+
+  .email-body-minimal {
+    padding: 36px 28px 44px;
+  }
+
+  .code-block-minimal {
+    text-align: center;
+    margin-bottom: 28px;
+  }
+
+  .code-block-minimal .code-value {
+    font-size: 36px;
+    letter-spacing: 0.22em;
+    color: var(--coral);
+  }
+
+  .code-block-minimal .code-label {
+    margin-bottom: 8px;
+  }
+
+  .code-block-minimal .code-expire {
+    margin-top: 12px;
+  }
+
+  /* ─── Variant 3: Dark header ─────────────────────────────── */
+  .email-header-dark {
+    background: var(--ink);
+    padding: 32px 28px;
+    text-align: center;
+  }
+
+  .email-header-dark .email-logo-text {
+    color: #fff;
+    margin-bottom: 8px;
+  }
+
+  .email-header-dark .header-tagline {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.4);
+  }
+
+  .email-body-dark {
+    padding: 36px 28px 44px;
+  }
+
+  .code-block-dark {
+    background: var(--ink);
+    border: none;
+    border-radius: 10px;
+    padding: 28px 24px;
+    text-align: center;
+    margin-bottom: 28px;
+  }
+
+  .code-block-dark .code-label {
+    color: rgba(255,255,255,0.45);
+  }
+
+  .code-block-dark .code-value {
+    color: #fff;
+    letter-spacing: 0.24em;
+  }
+
+  .code-block-dark .code-expire {
+    color: rgba(255,255,255,0.5);
+  }
+
+  .code-block-dark .code-expire strong {
+    color: var(--coral);
+  }
+
+  .footer-dark {
+    background: #fafaf8;
+    border-top: 1px solid var(--border-light);
+  }
+
+  /* ─── Responsive ─────────────────────────────────────────── */
+  @media (max-width: 680px) {
+    .page-header h1 { font-size: 22px; }
+    .email-subject { font-size: 16px; }
+    .email-body, .email-body-minimal, .email-body-dark { padding: 28px 20px 36px; }
+    .code-value { font-size: 32px; letter-spacing: 0.2em; }
+    .code-block-dark .code-value { font-size: 32px; }
+    .template-meta { gap: 8px; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="page-header" data-od-id="page-header">
+    <h1>邮件验证码模板</h1>
+    <p>用于展示 花森 发送验证码时的邮件样式。包含三种变体，适配不同场景。</p>
+    <div class="template-meta">
+      <span class="tag">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+        邮件模板
+      </span>
+      <span class="tag">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="m9 12 2 2 4-4"/></svg>
+        3 种变体
+      </span>
+      <span class="tag">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        HTML 邮件
+      </span>
+    </div>
+  </div>
+
+  <!-- ═══ Variant 1: Standard ═══════════════════════════════ -->
+  <div class="variant-section" data-od-id="variant-1">
+    <div class="variant-label">
+      <span class="num">1</span>
+      <span>标准样式 — 纯白卡片 + 等宽验证码</span>
+    </div>
+    <div class="email-client">
+      <div class="email-chrome">
+        <div class="email-chrome-dots"><span></span><span></span><span></span></div>
+        <span class="email-chrome-label">邮件预览</span>
+      </div>
+      <div class="email-subject-bar">
+        <div class="email-subject" data-od-id="email-subject-1">你的 花森 验证码</div>
+        <div class="email-from-row">
+          <div class="email-avatar">N</div>
+          <div class="email-from-text">
+            <span class="name">花森</span>
+            <span class="addr">noreply@noteflow.app</span>
+          </div>
+          <span class="email-date">今天 14:32</span>
+        </div>
+      </div>
+      <div class="email-body" data-od-id="email-body-1">
+        <div class="email-logo">
+          <div class="email-logo-text">Note<em>Flow</em></div>
+        </div>
+        <p class="email-greeting">你好，</p>
+        <p class="email-intro">你正在使用此邮箱注册 花森 账号。请使用以下验证码完成验证：</p>
+
+        <div class="code-block" data-od-id="code-block-1">
+          <div class="code-label">Verification Code</div>
+          <div class="code-value">4 8 2 7 5 1</div>
+          <div class="code-expire">验证码将在 <strong>10 分钟</strong>内有效，请尽快使用。</div>
+        </div>
+
+        <div class="info-box">
+          <p><strong>安全提示：</strong>花森 工作人员不会以任何理由向你索要此验证码。请勿将验证码泄露给他人。</p>
+        </div>
+
+        <hr class="email-divider" />
+
+        <div class="email-footer">
+          <p>如果这不是你的操作，请忽略此邮件，或联系 <a href="#">support@noteflow.app</a></p>
+          <div class="brand-footer">Note<em>Flow</em> · MMXXVI</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ Variant 2: Minimal ════════════════════════════════ -->
+  <div class="variant-section" data-od-id="variant-2">
+    <div class="variant-label">
+      <span class="num">2</span>
+      <span>极简样式 — 珊瑚色验证码 + 无边框卡片</span>
+    </div>
+    <div class="email-client">
+      <div class="email-chrome">
+        <div class="email-chrome-dots"><span></span><span></span><span></span></div>
+        <span class="email-chrome-label">邮件预览</span>
+      </div>
+      <div class="email-subject-bar">
+        <div class="email-subject" data-od-id="email-subject-2">花森 验证码：482751</div>
+        <div class="email-from-row">
+          <div class="email-avatar">N</div>
+          <div class="email-from-text">
+            <span class="name">花森</span>
+            <span class="addr">noreply@noteflow.app</span>
+          </div>
+          <span class="email-date">今天 14:32</span>
+        </div>
+      </div>
+      <div class="email-body-minimal" data-od-id="email-body-2">
+        <div class="email-logo">
+          <div class="email-logo-text">Note<em>Flow</em></div>
+        </div>
+        <p class="email-intro" style="text-align: center;">你的验证码如下，请在 10 分钟内使用：</p>
+
+        <div class="code-block-minimal" data-od-id="code-block-2">
+          <div class="code-label">Verification Code</div>
+          <div class="code-value">4 8 2 7 5 1</div>
+          <div class="code-expire">10 分钟内有效</div>
+        </div>
+
+        <hr class="email-divider" />
+
+        <div class="email-footer">
+          <p>此验证码用于 花森 账号验证。如非本人操作，请忽略。</p>
+          <div class="brand-footer">Note<em>Flow</em> · MMXXVI</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ Variant 3: Dark header ════════════════════════════ -->
+  <div class="variant-section" data-od-id="variant-3">
+    <div class="variant-label">
+      <span class="num">3</span>
+      <span>深色头部 — 品牌感更强，适合正式场景</span>
+    </div>
+    <div class="email-client">
+      <div class="email-chrome">
+        <div class="email-chrome-dots"><span></span><span></span><span></span></div>
+        <span class="email-chrome-label">邮件预览</span>
+      </div>
+      <div class="email-subject-bar">
+        <div class="email-subject" data-od-id="email-subject-3">[花森] 邮箱验证码</div>
+        <div class="email-from-row">
+          <div class="email-avatar">N</div>
+          <div class="email-from-text">
+            <span class="name">花森</span>
+            <span class="addr">noreply@noteflow.app</span>
+          </div>
+          <span class="email-date">今天 14:32</span>
+        </div>
+      </div>
+      <div data-od-id="email-body-3">
+        <div class="email-header-dark">
+          <div class="email-logo-text">Note<em>Flow</em></div>
+          <div class="header-tagline">ACCOUNT VERIFICATION</div>
+        </div>
+        <div class="email-body-dark">
+          <p class="email-greeting">你好，</p>
+          <p class="email-intro">你正在注册 花森 账号。请使用以下验证码完成邮箱验证：</p>
+
+          <div class="code-block-dark" data-od-id="code-block-3">
+            <div class="code-label">Verification Code</div>
+            <div class="code-value">4 8 2 7 5 1</div>
+            <div class="code-expire">验证码将在 <strong>10 分钟</strong>内过期</div>
+          </div>
+
+          <div class="info-box">
+            <p><strong>安全提示：</strong>花森 工作人员不会以任何理由向你索要此验证码。请勿将验证码泄露给他人。</p>
+          </div>
+
+          <hr class="email-divider" />
+
+          <div class="email-footer">
+            <p>如果这不是你的操作，请忽略此邮件，或联系 <a href="#">support@noteflow.app</a></p>
+            <div class="brand-footer">Note<em>Flow</em> · MMXXVI</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom spacer -->
+  <div style="height: 64px;"></div>
+
+</body>
+</html>
